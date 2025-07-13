@@ -32,6 +32,7 @@
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "openai": "^4.20.1",
+    "pdfjs-dist": "^5.3.93",
     "socket.io": "^4.7.4"
   },
   "devDependencies": {
