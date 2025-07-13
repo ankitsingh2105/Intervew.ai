@@ -2,19 +2,32 @@ import fetch from "node-fetch";
 
 const GEMINI_API_KEY = "AIzaSyCRO3jpEi5P7UH804JdeP4mcTCE-5pldOo";
 
+<<<<<<< HEAD
 export async function generateGeminiResponse(answer, history = [], topicId = null, customSystemPrompt = null) {
+=======
+export async function generateGeminiResponse(prompt, history = [], context = 'dynamic-interview') {
+>>>>>>> c1dc60387f6f18159132f55403dae123013791f5
     const historyText = history
         .map((h) => `${h.role === "user" ? "Candidate" : "AI"}: ${h.content}`)
         .join("\n");
 
+<<<<<<< HEAD
     // Use custom system prompt if provided, otherwise use topic-specific prompt
     let systemPrompt = "";
     if (customSystemPrompt) {
         systemPrompt = customSystemPrompt;
     } else if (topicId) {
+=======
+    // For dynamic interviews, use the provided prompt directly
+    let finalPrompt = prompt;
+    
+    // For topic-based interviews, get topic-specific prompt
+    if (context !== 'dynamic-interview' && context) {
+>>>>>>> c1dc60387f6f18159132f55403dae123013791f5
         const { getTopicById } = await import("../data/topics.js");
-        const topic = getTopicById(topicId);
+        const topic = getTopicById(context);
         if (topic) {
+<<<<<<< HEAD
             systemPrompt = `You are conducting a ${topic.title} interview. ${topic.prompt}`;
         }
     } else {
@@ -27,6 +40,21 @@ ${systemPrompt}
 CRITICAL INTERVIEW RULES:
 - **ASK ONLY ONE QUESTION AT A TIME** - This is the most important rule
 - Keep responses concise and professional (under 150 words total)
+=======
+            finalPrompt = `
+You are an AI interviewer conducting a professional mock interview.
+
+INTERVIEW CONTEXT:
+${topic.prompt}
+
+TOPIC: ${topic.title}
+DIFFICULTY: ${topic.difficulty}
+DURATION: ${topic.duration} minutes
+
+INTERVIEW RULES:
+- Keep responses concise and professional (under 100 words total)
+- Ask one question at a time
+>>>>>>> c1dc60387f6f18159132f55403dae123013791f5
 - Provide brief, constructive feedback on answers when appropriate
 - Maintain a conversational but professional tone
 - Focus on the specific role and technology stack
@@ -37,7 +65,7 @@ CRITICAL INTERVIEW RULES:
 - Ask follow-up questions based on the candidate's answers
 
 Candidate's Answer:
-"${answer}"
+"${prompt}"
 
 Based on the following interview history:
 ${historyText}
@@ -49,10 +77,16 @@ Now:
 4. Keep the total response under 150 words
 5. If this is the first question, ask them to introduce themselves
 
+<<<<<<< HEAD
 IMPORTANT: You must ask exactly ONE question per response. Do not ask multiple questions or compound questions.
 
 Remember: Generate questions dynamically based on the conversation context and candidate's responses.
+=======
+Remember: This is a topic-specific interview. Generate questions dynamically based on the conversation context and candidate's responses.
+>>>>>>> c1dc60387f6f18159132f55403dae123013791f5
 `;
+        }
+    }
 
     try {
         const response = await fetch(
@@ -64,7 +98,7 @@ Remember: Generate questions dynamically based on the conversation context and c
                     contents: [
                         {
                             role: "user",
-                            parts: [{ text: prompt }],
+                            parts: [{ text: finalPrompt }],
                         },
                     ],
                 }),

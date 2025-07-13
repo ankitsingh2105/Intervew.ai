@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import router from "./routes/index.js";
 import connectDB from "./config/db.js";
+import { initializeResumeCache } from "./utils/resumeParser.js";
 dotenv.config();
 
 const app = express();
@@ -23,11 +24,13 @@ app.get("/health", (req, res) => {
   });
 });
 
+const PORT = process.env.PORT || 5000;
 
-const PORT = 5000;
-
-connectDB().then(() => {
+connectDB().then(async () => {
     app.listen(PORT, () => console.log(`🚀 Server listening on port ${PORT}`));
+    
+    // Initialize resume cache after server starts
+    await initializeResumeCache();
 }).catch((err) => {
   console.log(err);
 });
