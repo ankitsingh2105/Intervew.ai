@@ -1,16 +1,14 @@
 import express from "express";
-import {
-  startInterviewController,
+import { 
+  startInterviewController, 
   continueInterviewController
 } from "../controllers/interviewController.js";
-
+import { authMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// POST /api/process/start - Generate initial welcome message for topic or combination
-router.post("/start/:topicId",startInterviewController);
-
-// POST /api/process - Continue interview conversation
-router.post("/continue/:topicId",  continueInterviewController);
+// Interview Flow Routes (Protected)
+router.post("/start", authMiddleware, startInterviewController);
+router.post("/continue", authMiddleware, continueInterviewController);
 
 export default router;
