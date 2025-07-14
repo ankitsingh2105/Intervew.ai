@@ -2,6 +2,20 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { 
+  FileText, 
+  Briefcase, 
+  Settings, 
+  Play,
+  Upload,
+  Save,
+  User,
+  Target,
+  Clock,
+  MessageSquare,
+  Zap,
+  Star
+} from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
 import InterviewCard from '../Components/InterviewCard';
 import ResumeModal from '../Components/ResumeModal';
@@ -22,7 +36,7 @@ const GiveInterview = () => {
   const navigate = useNavigate();
 
   // Sidebar open/close state
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // State for selections
   const [selectedRole, setSelectedRole] = useState(null);
@@ -61,11 +75,14 @@ const GiveInterview = () => {
     const file = event.target.files[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        toast.error('Please upload a PDF file only.');
+        toast.error('Please upload a PDF file only.', { autoClose: 1000 });
         return;
       }
       setResumeFile(file);
-      toast.success(`Resume "${file.name}" uploaded successfully!`);
+      toast.success(` Resume uploaded successfully!`, {
+        position: "top-right",
+        autoClose: 1000
+      });
       setModalOpen(false);
       setModalOption(null);
     }
@@ -75,11 +92,16 @@ const GiveInterview = () => {
   const handleSaveJobDescription = () => {
     if (jobDescription.trim()) {
       setSavedJobDescriptionText(jobDescription);
-      toast.success('Job description saved successfully!');
+      toast.success('Job description added', {
+        position: "top-right",
+        autoClose: 1000,
+      });
       setModalOpen(false);
       setModalOption(null);
       // Reset modal state
       setJobDescription('');
+    } else {
+      toast.error('Please enter a job description', { autoClose: 1000 });
     }
   };
 
@@ -104,14 +126,32 @@ const GiveInterview = () => {
       console.log('  - selectedRole:', selectedRole ? '✅ Selected' : '❌ Not selected');
       console.log('  - selectedSeniority:', selectedSeniority ? '✅ Selected' : '❌ Not selected');
       console.log('  - selectedInterviewType:', selectedInterviewType ? '✅ Selected' : '❌ Not selected');
-      toast.error('Please select Role, Seniority Level, and Interview Type before starting.');
+      toast.error('❌ Please select Role, Seniority Level, and Interview Type before starting.', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
       return;
     }
 
     console.log('✅ All required fields are selected!');
 
     try {
-      toast.info('Starting interview...');
+      toast.info('🚀 Preparing your interview...', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
 
       // Create FormData to send file and JSON data together
       const formData = new FormData();
@@ -150,7 +190,16 @@ const GiveInterview = () => {
       });
 
       console.log('Interview started successfully:', response.data);
-      toast.success('Interview started successfully!');
+      toast.success('🎉 Interview started successfully! Good luck! 🍀', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
 
       // Navigate to interview page with the interview data
       navigate('/interview', {
@@ -162,7 +211,16 @@ const GiveInterview = () => {
       });
     } catch (error) {
       console.error('Error starting interview:', error);
-      toast.error('Error starting interview. Please try again.');
+      toast.error('❌ Error starting interview. Please try again.', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
     }
   };
 
@@ -173,7 +231,7 @@ const GiveInterview = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-100 via-white to-gray-100 dark:from-black dark:via-gray-900 dark:to-black text-gray-900 dark:text-white transition-colors duration-300 pt-16">
+    <div className="bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pt-16">
       {/* Sidebar */}
       {/* Modal */}
       <ResumeModal
@@ -189,7 +247,7 @@ const GiveInterview = () => {
         handleSaveJobDescription={handleSaveJobDescription}
       />
 
-      <section className="flex h-[calc(100vh-4rem)]">
+      <section className="flex h-[calc(100vh-4rem)] bg-white dark:bg-black">
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -197,19 +255,26 @@ const GiveInterview = () => {
         />
 
         {/* Main Content */}
-        <div className={`transition-all duration-300 flex-1 overflow-y-auto ${sidebarOpen ? 'ml-30' : 'ml-20'}`}>
+        <div className={`bg-white dark:bg-black text-black dark:text-white transition-all duration-300 flex-1 overflow-y-auto ${sidebarOpen ? 'ml-0' : 'ml-0'}`}>
+
           {/* Header (Sticky) */}
-          <div className="sticky top-0 z-10 bg-gradient-to-br from-white via-gray-100 to-white dark:from-black dark:via-gray-900 dark:to-black p-6 ">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-700 to-violet-600 bg-clip-text text-transparent">
-              Configure Your Interview
-            </h1>
-            <p className="text-gray-400 mt-2">
-              Customize your interview experience by selecting your preferences below
-            </p>
+          <div className="border-t bg-white dark:bg-black sticky top-0 z-10 p-6 shadow-lg border-gray-200 dark:border-gray-800">
+
+            <div className="flex items-center gap-3">
+              <Settings className="w-8 h-8 text-black dark:text-white animate-[spin_3s_linear_infinite]" strokeWidth={2.5} />
+              <div>
+                <h1 className="text-4xl font-bold text-black dark:text-white">
+                  Configure Your Interview
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">
+                  Customize your interview experience by selecting your preferences below
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Scrollable Content */}
-          <div className="p-8">
+          <div className="p-8 bg-white dark:bg-black">
             <div className="scroll-m-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <InterviewCard title="Role / Job Track" index={0}>
                 <div className="flex flex-wrap gap-3">
@@ -219,8 +284,8 @@ const GiveInterview = () => {
                       onClick={() => setSelectedRole(role)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedRole === role
-                          ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white border-pink-500 shadow-lg shadow-pink-500/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {role}
@@ -237,8 +302,8 @@ const GiveInterview = () => {
                       onClick={() => setSelectedSeniority(level)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedSeniority === level
-                          ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-yellow-500 shadow-lg shadow-yellow-500/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {level}
@@ -255,8 +320,8 @@ const GiveInterview = () => {
                       onClick={() => toggleTechStack(tech)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedTechStack.includes(tech)
-                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 shadow-lg shadow-green-500/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {tech}
@@ -273,8 +338,8 @@ const GiveInterview = () => {
                       onClick={() => setSelectedInterviewType(type)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedInterviewType === type
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {type}
@@ -285,7 +350,7 @@ const GiveInterview = () => {
 
               <InterviewCard title="Company Target" index={4}>
                 <select
-                  className="w-full p-4 rounded-xl border-2 border-gray-600 dark:border-gray-600 bg-gray-800/50 dark:bg-gray-800/30 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full p-4 rounded-xl border-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all duration-200"
                   value={selectedCompany}
                   onChange={e => setSelectedCompany(e.target.value)}
                 >
@@ -302,8 +367,8 @@ const GiveInterview = () => {
                       onClick={() => setSelectedDifficulty(diff)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedDifficulty === diff
-                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {diff}
@@ -320,8 +385,8 @@ const GiveInterview = () => {
                       onClick={() => setSelectedMode(mode)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedMode === mode
-                          ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {mode}
@@ -338,8 +403,8 @@ const GiveInterview = () => {
                       onClick={() => setSelectedDuration(dur)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedDuration === dur
-                          ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-600 shadow-lg shadow-gray-600/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {dur}
@@ -356,8 +421,8 @@ const GiveInterview = () => {
                       onClick={() => setSelectedFeedbackType(type)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all duration-200 transform hover:scale-105
                       ${selectedFeedbackType === type
-                          ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-cyan-500 shadow-lg shadow-cyan-500/25'
-                          : 'bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700/30 border-gray-300 dark:border-gray-600'}
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg shadow-black/25 dark:shadow-white/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'}
                     `}
                     >
                       {type}
@@ -371,8 +436,9 @@ const GiveInterview = () => {
             <div className="fixed bottom-8 right-8 z-50">
               <button
                 onClick={handleStartInterview}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-lg font-bold px-8 py-4 rounded-full shadow-2xl hover:shadow-red-500/25 transition-all duration-300 transform hover:scale-105"
+                className="bg-white text-black text-lg font-bold px-8 py-4 rounded-full shadow-2xl hover:shadow-white/25 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
               >
+                <Play className="w-5 h-5" strokeWidth={2.5} />
                 Start
               </button>
             </div>
@@ -380,7 +446,6 @@ const GiveInterview = () => {
         </div>
 
       </section>
-
 
     </div>
   );

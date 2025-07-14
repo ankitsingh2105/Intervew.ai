@@ -2,9 +2,8 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { signToken } from "../utils/jwt.js";
 import { supabase } from "../utils/supabase.js";
-import { parseResumeFromUrl, updateResumeCache } from "../utils/resumeParser.js";
 
-// Signup (email/password)
+// Signup (email/password) 
 export async function signup(req, res) {
   try {
     const { name, email, password, college, course, yearOfGraduation} = req.body;
@@ -97,63 +96,3 @@ export async function updateProfile(req, res) {
     res.status(500).json({ success: false, error: "Failed to update profile" });
   }
 }
-
-// Upload/Update Resume (PDF)
-export async function uploadResume(req, res) {
-  try {
-    
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: "No file uploaded" });
-    }
-    
-    if (req.file.mimetype !== "application/pdf") {
-      return res.status(400).json({ success: false, error: "Only PDF files are allowed" });
-    }
-    
-    if (!supabase) {
-      return res.status(500).json({ success: false, error: "Supabase not configured" });
-    }
-    
-    const userId = req.user.id;
-    const fileExt = ".pdf";
-    const fileName = `resume-${userId}-${Date.now()}${fileExt}`;
-    
-    const { data, error } = await supabase.storage
-      .from("interview")
-      .upload(fileName, req.file.buffer, {
-        contentType: "application/pdf",
-        upsert: true
-      });
-    
-    if (error) {
-      return res.status(500).json({ success: false, error: "Failed to upload to Supabase: " + error.message });
-    }
-    
-    // Get public URL from the interview bucket
-    const { data: publicUrlData } = supabase.storage.from("interview").getPublicUrl(fileName);
-    const publicUrl = publicUrlData?.publicUrl;
-    
-    if (!publicUrl) {
-      return res.status(500).json({ success: false, error: "Failed to get public URL" });
-    }
-    
-    // Update user
-    const user = await User.findByIdAndUpdate(userId, { resumeUrl: publicUrl }, { new: true, select: "-password -__v" });
-    
-    // Parse and cache the resume
-    try {
-      const resumeInfo = await parseResumeFromUrl(publicUrl);
-      if (resumeInfo) {
-        updateResumeCache(publicUrl, resumeInfo, userId);
-        console.log(`Resume parsed and cached for user: ${user.name}`);
-      }
-    } catch (parseError) {
-      console.error('Failed to parse uploaded resume:', parseError.message);
-      // Don't fail the upload if parsing fails
-    }
-    
-    res.json({ success: true, resumeUrl: publicUrl, user });
-  } catch (err) {
-    res.status(500).json({ success: false, error: "Resume upload failed: " + err.message });
-  }
-} 

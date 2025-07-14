@@ -1,92 +1,55 @@
 import fetch from "node-fetch";
 
-const GEMINI_API_KEY = "AIzaSyCRO3jpEi5P7UH804JdeP4mcTCE-5pldOo";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyCRO3jpEi5P7UH804JdeP4mcTCE-5pldOo";
 
-<<<<<<< HEAD
-export async function generateGeminiResponse(answer, history = [], topicId = null, customSystemPrompt = null) {
-=======
-export async function generateGeminiResponse(prompt, history = [], context = 'dynamic-interview') {
->>>>>>> c1dc60387f6f18159132f55403dae123013791f5
+export async function generateGeminiResponse(answer, history = [], interviewData = {}, sessionId = null) {
     const historyText = history
         .map((h) => `${h.role === "user" ? "Candidate" : "AI"}: ${h.content}`)
         .join("\n");
 
-<<<<<<< HEAD
-    // Use custom system prompt if provided, otherwise use topic-specific prompt
-    let systemPrompt = "";
-    if (customSystemPrompt) {
-        systemPrompt = customSystemPrompt;
-    } else if (topicId) {
-=======
-    // For dynamic interviews, use the provided prompt directly
-    let finalPrompt = prompt;
-    
-    // For topic-based interviews, get topic-specific prompt
-    if (context !== 'dynamic-interview' && context) {
->>>>>>> c1dc60387f6f18159132f55403dae123013791f5
-        const { getTopicById } = await import("../data/topics.js");
-        const topic = getTopicById(context);
-        if (topic) {
-<<<<<<< HEAD
-            systemPrompt = `You are conducting a ${topic.title} interview. ${topic.prompt}`;
-        }
-    } else {
-        systemPrompt = "You are an AI interviewer conducting a professional mock interview.";
+    // Build context from interviewData
+    let context = "";
+    if (interviewData) {
+        context += `Role: ${interviewData.role || "N/A"}\n`;
+        context += `Seniority: ${interviewData.seniority || "N/A"}\n`;
+        context += `Interview Type: ${interviewData.interviewType || "N/A"}\n`;
+        if (interviewData.company) context += `Company: ${interviewData.company}\n`;
+        if (interviewData.techStack && interviewData.techStack.length > 0)
+            context += `Tech Stack: ${interviewData.techStack.join(", ")}\n`;
+        if (interviewData.difficulty) context += `Difficulty: ${interviewData.difficulty}\n`;
     }
 
     const prompt = `
-${systemPrompt}
-
-CRITICAL INTERVIEW RULES:
-- **ASK ONLY ONE QUESTION AT A TIME** - This is the most important rule
-- Keep responses concise and professional (under 150 words total)
-=======
-            finalPrompt = `
 You are an AI interviewer conducting a professional mock interview.
 
 INTERVIEW CONTEXT:
-${topic.prompt}
-
-TOPIC: ${topic.title}
-DIFFICULTY: ${topic.difficulty}
-DURATION: ${topic.duration} minutes
+${context}
 
 INTERVIEW RULES:
 - Keep responses concise and professional (under 100 words total)
 - Ask one question at a time
->>>>>>> c1dc60387f6f18159132f55403dae123013791f5
-- Provide brief, constructive feedback on answers when appropriate
+- Do NOT provide feedback after each answer, just acknowledge and move to the next question
 - Maintain a conversational but professional tone
-- Focus on the specific role and technology stack
+- Focus on the specific topic area
+- Interview should last approximately 10 minutes
 - Adapt question difficulty based on candidate's responses
 - Generate questions dynamically based on the conversation flow
 - Don't repeat questions that have already been asked
-- Consider the candidate's resume information if available
-- Ask follow-up questions based on the candidate's answers
 
 Candidate's Answer:
-"${prompt}"
+"${answer}"
 
 Based on the following interview history:
 ${historyText}
 
 Now:
 1. Give a brief, encouraging response to the candidate's answer (1-2 sentences max)
-2. **ASK ONLY ONE RELEVANT INTERVIEW QUESTION** - Do not ask multiple questions
+2. Generate and ask the next relevant interview question for this topic
 3. Make sure the question is appropriate for the candidate's demonstrated skill level
-4. Keep the total response under 150 words
-5. If this is the first question, ask them to introduce themselves
+4. Keep the total response under 100 words
 
-<<<<<<< HEAD
-IMPORTANT: You must ask exactly ONE question per response. Do not ask multiple questions or compound questions.
-
-Remember: Generate questions dynamically based on the conversation context and candidate's responses.
-=======
-Remember: This is a topic-specific interview. Generate questions dynamically based on the conversation context and candidate's responses.
->>>>>>> c1dc60387f6f18159132f55403dae123013791f5
+Remember: Do NOT provide feedback or coaching after each answer. Only move the interview forward.
 `;
-        }
-    }
 
     try {
         const response = await fetch(
@@ -98,7 +61,7 @@ Remember: This is a topic-specific interview. Generate questions dynamically bas
                     contents: [
                         {
                             role: "user",
-                            parts: [{ text: finalPrompt }],
+                            parts: [{ text: prompt }],
                         },
                     ],
                 }),
