@@ -3,8 +3,18 @@ import axios from "axios";
 import useSpeechRecognition from "../hooks/useSpeechRecognition";
 import { speak } from "../utils/speak";
 
-export default function InterviewLoop({ interviewData: propInterviewData, resumeFile }) {
-  const [sessionId, setSessionId] = useState(null);
+export default function InterviewLoop({ interviewData: propInterviewData, resumeFile, sessionId: propSessionId }) {
+  // Always use interviewData from localStorage if available, else from props
+  const [interviewData, setInterviewData] = useState(() => {
+    const stored = localStorage.getItem('interviewData');
+    if (stored) return JSON.parse(stored);
+    if (propInterviewData) {
+      localStorage.setItem('interviewData', JSON.stringify(propInterviewData));
+      return propInterviewData;
+    }
+    return null;
+  });
+
   const [started, setStarted] = useState(false);
   const [isAIResponding, setIsAIResponding] = useState(false);
   const [isStarting, setIsStarting] = useState(true);
@@ -19,10 +29,18 @@ export default function InterviewLoop({ interviewData: propInterviewData, resume
     onResult: async (text) => {
       stopListening();
       setIsAIResponding(true);
+
+      // Ensure resumeText is present
+      if (!interviewData || !interviewData.resumeText) {
+        console.warn('Warning: resumeText missing from interviewData. AI will not have resume context.');
+      }
+
       try {
-        const response = await axios.post("http://localhost:5000/api/interview/process", {
+        const response = await axios.post("http://localhost:5010/api/interview/process", {
           answer: text,
-          sessionId
+          history: newHistory,
+          interviewData, // always defined from state/localStorage, should include resumeText
+          sessionId: propSessionId
         });
         if (response.data.finished) {
           setInterviewComplete(true);

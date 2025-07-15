@@ -107,25 +107,22 @@ const GiveInterview = () => {
   // Handle start interview - send raw resume file to backend for parsing
   const handleStartInterview = async () => {
     // Console log the current state values
-    console.log('=== CURRENT SELECTIONS ===');
-    console.log('selectedRole:', selectedRole);
-    console.log('selectedSeniority:', selectedSeniority);
-    console.log('selectedInterviewType:', selectedInterviewType);
-    console.log('selectedTechStack:', selectedTechStack);
-    console.log('selectedCompany:', selectedCompany);
-    console.log('selectedDifficulty:', selectedDifficulty);
-    console.log('selectedMode:', selectedMode);
-    console.log('selectedDuration:', selectedDuration);
-    console.log('selectedFeedbackType:', selectedFeedbackType);
-    console.log('========================');
+   
 
-    // Check if required fields are selected
-    if (!selectedRole || !selectedSeniority || !selectedInterviewType) {
-      console.log('❌ Missing required fields:');
-      console.log('  - selectedRole:', selectedRole ? '✅ Selected' : '❌ Not selected');
-      console.log('  - selectedSeniority:', selectedSeniority ? '✅ Selected' : '❌ Not selected');
-      console.log('  - selectedInterviewType:', selectedInterviewType ? '✅ Selected' : '❌ Not selected');
-      toast.error('❌ Please select Role, Seniority Level, and Interview Type before starting.', {
+    // Only show a warning if literally nothing is selected
+    if (
+      !selectedRole &&
+      !selectedSeniority &&
+      !selectedInterviewType &&
+      (!selectedTechStack || selectedTechStack.length === 0) &&
+      !selectedCompany &&
+      !selectedDifficulty &&
+      !selectedMode &&
+      !selectedDuration &&
+      !selectedFeedbackType &&
+      !savedJobDescriptionText
+    ) {
+      toast.error('❌ Please select at least one field before starting.', {
         position: "top-right",
         autoClose: 4000,
         hideProgressBar: false,
@@ -138,7 +135,7 @@ const GiveInterview = () => {
       return;
     }
 
-    console.log('✅ All required fields are selected!');
+    console.log('✅ At least one field is selected!');
 
     try {
       toast.info('🚀 Preparing your interview...', {
@@ -182,7 +179,7 @@ const GiveInterview = () => {
         interviewData: interviewData
       });
 
-      const response = await axios.post('http://localhost:5000/api/interview/start', formData, {
+      const response = await axios.post('http://localhost:5010/api/interview/start', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
