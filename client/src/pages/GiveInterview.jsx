@@ -184,6 +184,7 @@ const GiveInterview = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        withCredentials: true // Send cookies (auth token) with the request
       });
 
       console.log('Interview started successfully:', response.data);

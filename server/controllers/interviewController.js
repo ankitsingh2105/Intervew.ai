@@ -28,6 +28,8 @@ export const startInterviewController = async (req, res) => {
     } else {
       throw new Error('Invalid interviewData format');
     }
+    // Set default duration to 15 minutes if not provided
+    const duration = parsedData.duration || 15; // in minutes
     const { role, seniority, interviewType, techStack, company, difficulty, jobDescriptionText } = parsedData;
 
     // Parse resume if provided
@@ -55,7 +57,8 @@ export const startInterviewController = async (req, res) => {
       difficulty,
       jobDescription: jobDescriptionText,
       resumeText,
-      sessionId
+      sessionId,
+      duration // add duration to context
     };
 
     // Generate the first AI question using Gemini
