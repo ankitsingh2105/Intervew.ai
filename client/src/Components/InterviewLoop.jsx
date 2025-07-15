@@ -47,7 +47,7 @@ export default function InterviewLoop({ interviewData: propInterviewData, resume
         const response = await axios.post("http://localhost:5010/api/interview/process", {
           answer: text,
           history: newHistory,
-          interviewData, // always defined from state/localStorage, should include resumeText
+          interviewData, // always defined from state/localStorage, should includ resumeText
           sessionId: propSessionId
         });
         if (response.data.finished) {
