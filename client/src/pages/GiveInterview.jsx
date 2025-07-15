@@ -188,7 +188,7 @@ const GiveInterview = () => {
       });
 
       console.log('Interview started successfully:', response.data);
-      toast.success('🎉 Interview started successfully! Good luck! 🍀', {
+      toast.success('🎉 Interview started successfully! Good luc! 🍀', {
         position: "top-right",
         autoClose: 4000,
         hideProgressBar: false,
