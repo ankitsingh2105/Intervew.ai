@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import BubbeBackground from '../Components/BubbleBackground';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -83,13 +84,11 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 pt-16">
+      <BubbeBackground />
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <div className="p-4 bg-gradient-to-br from-blue-500 via-yellow-500 to-red-500 rounded-full">
-              <User className="w-8 h-8 text-white" strokeWidth={2.5} />
-            </div>
           </div>
           <h2 className="text-3xl font-bold text-black dark:text-white">
             Create Account

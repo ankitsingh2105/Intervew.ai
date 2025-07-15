@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import BubbeBackground from '../Components/BubbleBackground';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 pt-16">
+      <BubbeBackground />
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
