@@ -1,30 +1,14 @@
-// For Node.js, we'll use a simpler approach without pdfjs-dist
-// You can install pdf-parse or pdf2pic for better Node.js compatibility
+import pdfParse from 'pdf-parse';
 
-// Simple text extraction for now - you can enhance this later
 export const parseResumeFromFile = async (file) => {
   try {
     if (!file || !file.buffer) {
       throw new Error('No file or file buffer provided');
     }
-    
     console.log('PDF file received:', file.originalname, 'Size:', file.size);
-    
-    // Placeholder - replace with actual PDF parsing
-    const placeholderText = `Resume for ${file.originalname}
-    
-This is a placeholder for the parsed resume content.
-In a production environment, you would implement proper PDF parsing here.
-
-You can use libraries like:
-- pdf-parse (simple text extraction)
-- pdf2pic (convert to images then OCR)
-- AWS Textract (cloud-based OCR)
-- Google Cloud Vision API
-
-For now, the interview will continue without resume context.`;
-
-    return placeholderText;
+    // Use pdf-parse to extract text from the PDF buffer
+    const data = await pdfParse(file.buffer);
+    return data.text;
   } catch (error) {
     console.error('Error parsing resume:', error);
     throw new Error(`Failed to parse resume: ${error.message}`);

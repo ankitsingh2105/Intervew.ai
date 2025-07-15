@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 
-const GEMINI_API_KEY = "AIzaSyCRO3jpEi5P7UH804JdeP4mcTCE-5pldOo";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyCRO3jpEi5P7UH804JdeP4mcTCE-5pldOo";
 
 export async function generateGeminiResponse(answer, history = [], topicId = null, customSystemPrompt = null) {
     const historyText = history
@@ -29,12 +29,11 @@ CRITICAL INTERVIEW RULES:
 - Keep responses concise and professional (under 150 words total)
 - Provide brief, constructive feedback on answers when appropriate
 - Maintain a conversational but professional tone
-- Focus on the specific role and technology stack
+- Focus on the specific topic area
+- Interview should last approximately 10 minutes
 - Adapt question difficulty based on candidate's responses
 - Generate questions dynamically based on the conversation flow
 - Don't repeat questions that have already been asked
-- Consider the candidate's resume information if available
-- Ask follow-up questions based on the candidate's answers
 
 Candidate's Answer:
 "${answer}"
@@ -44,16 +43,12 @@ ${historyText}
 
 Now:
 1. Give a brief, encouraging response to the candidate's answer (1-2 sentences max)
-2. **ASK ONLY ONE RELEVANT INTERVIEW QUESTION** - Do not ask multiple questions
+2. Generate and ask the next relevant interview question for this topic
 3. Make sure the question is appropriate for the candidate's demonstrated skill level
-4. Keep the total response under 150 words
-5. If this is the first question, ask them to introduce themselves
+4. Keep the total response under 100 words
 
-IMPORTANT: You must ask exactly ONE question per response. Do not ask multiple questions or compound questions.
-
-Remember: Generate questions dynamically based on the conversation context and candidate's responses.
+Remember: Do NOT provide feedback or coaching after each answer. Only move the interview forward.
 `;
-    
 
     try {
         const response = await fetch(

@@ -2,18 +2,18 @@ import React from 'react';
 import { ChevronRight, ChevronLeft, FileText, ClipboardList, StickyNote, Settings } from 'lucide-react';
 
 const sidebarOptions = [
-  { label: 'Upload Resume', icon: FileText },
-  { label: 'Job-Description', icon: ClipboardList },
-  { label: 'My Interviews', icon: StickyNote },
-  { label: 'Settings', icon: Settings },
+  { label: 'Upload Resume', icon: FileText, color: "text-red-500" },
+  { label: 'Job-Description', icon: ClipboardList, color: "text-yellow-500" },
+  { label: 'My Interviews', icon: StickyNote, color: "text-blue-500" },
+  { label: 'Settings', icon: Settings, color: "text-purple-500" },
 ];
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, onOptionClick }) => {
   return (
     <aside
-      className={`sticky top-0 flex h-[90vh] flex-col justify-between z-10 shadow-xl transition-all duration-300
+      className={`sticky top-0 flex h-[90vh] flex-col justify-between z-10 shadow-xl transition-all duration-300 border-r
         ${sidebarOpen ? 'w-60 px-6' : 'w-20 px-4'}
-        bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 py-10 gap-6
+        bg-white dark:bg-black border-gray-200 dark:border-gray-800 py-10 gap-6
       `}
     >
       <nav className="flex flex-col gap-4">
@@ -22,10 +22,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, onOptionClick }) => {
           return (
             <button
               key={opt.label}
-              className={`mb-5 flex items-center py-1 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900 transition-all font-medium text-sm shadow border border-gray-200 dark:border-gray-800 w-full ${sidebarOpen ? 'px-2 justify-start gap-3' : 'px-3.5 justify-center'}`}
+              className={`mb-5 flex items-center py-1 rounded-lg text-gray-700 
+                
+                dark:text-white transition-all font-medium text-sm font-bold  dark:border-gray-800 w-full ${sidebarOpen ? 'px-2 justify-start gap-3' : 'px-3.5 justify-center'}`}
               onClick={() => onOptionClick(opt.label)}
             >
-              <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <Icon className={`w-5 h-5 ${opt.color}`} strokeWidth={2.5} />
               <span
                 className={`overflow-hidden transition-all duration-300 whitespace-nowrap
                   ${sidebarOpen ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}
