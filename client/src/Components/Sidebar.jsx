@@ -1,11 +1,13 @@
 import React from 'react';
-import { ChevronRight, ChevronLeft, FileText, ClipboardList, StickyNote, Settings } from 'lucide-react';
+import { ChevronRight, ChevronLeft, FileText, ClipboardList, StickyNote, Settings, Users, BookUser } from 'lucide-react';
 
 const sidebarOptions = [
   { label: 'Upload Resume', icon: FileText, color: "text-red-500" },
   { label: 'Job-Description', icon: ClipboardList, color: "text-yellow-500" },
   { label: 'My Interviews', icon: StickyNote, color: "text-blue-500" },
   { label: 'Settings', icon: Settings, color: "text-purple-500" },
+  { label: 'Schedule Interview', icon: Users, color: "" },
+  { label: 'With expert', icon: BookUser, color: "text-green-500" },
 ];
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, onOptionClick }) => {
@@ -22,9 +24,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, onOptionClick }) => {
           return (
             <button
               key={opt.label}
-              className={`mb-5 flex items-center py-1 rounded-lg text-gray-700 
-                
-                dark:text-white transition-all font-medium text-sm font-bold  dark:border-gray-800 w-full ${sidebarOpen ? 'px-2 justify-start gap-3' : 'px-3.5 justify-center'}`}
+              className={`mb-5 flex items-center py-1 rounded-lg text-gray-700 dark:text-white transition-all font-medium text-sm font-bold  dark:border-gray-800 w-full ${sidebarOpen ? 'px-2 justify-start gap-3' : 'px-3.5 justify-center'}`}
               onClick={() => onOptionClick(opt.label)}
             >
               <Icon className={`w-5 h-5 ${opt.color}`} strokeWidth={2.5} />

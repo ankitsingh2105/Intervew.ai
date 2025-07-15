@@ -19,7 +19,6 @@ import {
 import Sidebar from '../Components/Sidebar';
 import InterviewCard from '../Components/InterviewCard';
 import ResumeModal from '../Components/ResumeModal';
-import { parseResume } from '../utils/resumeParser';
 import {
   roles,
   seniority,

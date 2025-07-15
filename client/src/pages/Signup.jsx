@@ -3,17 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login: loginContext } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    college: '',
+    course: '',
+    yearOfGraduation: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,7 +34,6 @@ const Signup = () => {
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    
     return { minLength, hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar };
   };
 
@@ -40,52 +43,36 @@ const Signup = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match', {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Validate passwords match
-      if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match', {
-          position: "top-right",
-          autoClose: 2000,
-        });
-        return;
-      }
-
-      // Validate password strength
-      const validation = validatePassword(formData.password);
-      const isValid = Object.values(validation).every(Boolean);
-      
-      if (!isValid) {
-        toast.error('Password does not meet requirements', {
-          position: "top-right",
-          autoClose: 2000,
-        });
-        return;
-      }
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, accept any valid data
-      if (formData.name && formData.email && formData.password) {
-        login({
-          email: formData.email,
-          name: formData.name
-        });
-        
+      const payload = { ...formData };
+      delete payload.confirmPassword;
+      const response = await axios.post('http://localhost:5000/api/auth/signup', payload);
+      if (response.data.success) {
+        // Set JWT token in cookie
+        document.cookie = `token=${response.data.token}; path=/; max-age=604800; secure; samesite=strict`;
+        loginContext(response.data.user); // update context with user info
         toast.success('🎉 Account created successfully! Welcome!', {
           position: "top-right",
           autoClose: 2000,
         });
-        
         navigate('/');
       } else {
-        toast.error('Please fill in all fields', {
+        toast.error(response.data.error || 'Signup failed', {
           position: "top-right",
           autoClose: 2000,
         });
       }
     } catch (error) {
-      toast.error('Signup failed. Please try again.', {
+      toast.error(error.response?.data?.error || 'Signup failed. Please try again.', {
         position: "top-right",
         autoClose: 2000,
       });

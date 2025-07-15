@@ -65,9 +65,9 @@ const Navbar = () => {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <User className="w-4 h-4 text-gray-600 dark:text-gray-400" strokeWidth={2} />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                      <Link to="/user/dashboard" className="text-sm text-gray-700 dark:text-gray-300 font-semibold hover:underline">
                         {user?.name || user?.email}
-                      </span>
+                      </Link>
                     </div>
                     
                     {/* Logout Button */}

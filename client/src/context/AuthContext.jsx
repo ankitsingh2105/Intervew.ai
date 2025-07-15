@@ -1,69 +1,54 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on app start
-    const checkAuthStatus = () => {
-      const loginStatus = localStorage.getItem('isLoggedIn');
-      const userEmail = localStorage.getItem('userEmail');
-      const userName = localStorage.getItem('userName');
-
-      if (loginStatus === 'true' && userEmail) {
-        setIsLoggedIn(true);
-        setUser({
-          email: userEmail,
-          name: userName || userEmail
+    const token = getCookie('token');
+    if (token) {
+      // Fetch user details from backend
+      axios.get('http://localhost:5000/api/userdetails', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          setUser(res.data.user);
+        })
+        .catch(() => {
+          setUser(null);
+        })
+        .finally(() => {
+          setLoading(false);
         });
-      }
+    } else {
       setLoading(false);
-    };
-
-    checkAuthStatus();
+    }
   }, []);
 
   const login = (userData) => {
-    setIsLoggedIn(true);
     setUser(userData);
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', userData.email);
-    if (userData.name) {
-      localStorage.setItem('userName', userData.name);
-    }
   };
 
   const logout = () => {
-    setIsLoggedIn(false);
+    document.cookie = 'token=; Max-Age=0; path=/;';
     setUser(null);
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-  };
-
-  const value = {
-    isLoggedIn,
-    user,
-    loading,
-    login,
-    logout
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
-}; 
+};
+
+export const useAuth = () => useContext(AuthContext); 

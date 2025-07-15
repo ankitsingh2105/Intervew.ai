@@ -3,130 +3,105 @@ import axios from "axios";
 import useSpeechRecognition from "../hooks/useSpeechRecognition";
 import { speak } from "../utils/speak";
 
-export default function InterviewLoop({ interviewData: propInterviewData, resumeFile, sessionId }) {
-  // Always use interviewData from localStorage if available, else from props
-  const [interviewData, setInterviewData] = useState(() => {
-    const stored = localStorage.getItem('interviewData');
-    if (stored) return JSON.parse(stored);
-    if (propInterviewData) {
-      localStorage.setItem('interviewData', JSON.stringify(propInterviewData));
-      return propInterviewData;
-    }
-    return null;
-  });
-
+export default function InterviewLoop({ interviewData: propInterviewData, resumeFile }) {
+  const [sessionId, setSessionId] = useState(null);
   const [started, setStarted] = useState(false);
-  const [history, setHistory] = useState([]);
   const [isAIResponding, setIsAIResponding] = useState(false);
   const [isStarting, setIsStarting] = useState(true);
   const [cameraPermission, setCameraPermission] = useState('requesting');
   const [userVideoStream, setUserVideoStream] = useState(null);
-  const chatEndRef = useRef(null);
+  const [remaining, setRemaining] = useState(null);
+  const [interviewComplete, setInterviewComplete] = useState(false);
   const userVideoRef = useRef(null);
+  const timerInterval = useRef(null);
 
-  const { transcript, listening, startListening, stopListening, resetTranscript } = useSpeechRecognition({
+  const { listening, startListening, stopListening, resetTranscript } = useSpeechRecognition({
     onResult: async (text) => {
-      console.log("User answered:", text);
       stopListening();
-      const newHistory = [...history, { role: "user", content: text }];
-      setHistory(newHistory);
       setIsAIResponding(true);
-
       try {
         const response = await axios.post("http://localhost:5000/api/interview/process", {
           answer: text,
-          history: newHistory,
-          interviewData, // always defined from state/localStorage
-          sessionId,
-          resumeFile: resumeFile ? resumeFile.name : null
+          sessionId
         });
-
-        const { reply } = response.data;
-        setHistory((h) => [...h, { role: "assistant", content: reply }]);
-
-        speak(reply, () => {
+        if (response.data.finished) {
+          setInterviewComplete(true);
+          setRemaining(0);
+          setIsAIResponding(false);
+          return;
+        }
+        setRemaining(response.data.remaining);
+        speak(response.data.reply, () => {
           resetTranscript();
           setIsAIResponding(false);
-          startListening(); // continue loop
+          startListening();
         });
       } catch (error) {
-        console.error('Error getting AI response:', error);
         setIsAIResponding(false);
       }
     },
   });
 
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Timer display
   useEffect(() => {
-    scrollToBottom();
-  }, [history]);
+    if (remaining === null || interviewComplete) return;
+    if (timerInterval.current) clearInterval(timerInterval.current);
+    timerInterval.current = setInterval(() => {
+      setRemaining((r) => (r > 0 ? r - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timerInterval.current);
+  }, [remaining, interviewComplete]);
 
-  // Request camera permission and start interview automatically
+  // Request camera permission and start interview after video is set
   useEffect(() => {
     const initializeInterview = async () => {
       try {
-        // Request camera permission
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: true 
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setUserVideoStream(stream);
         setCameraPermission('granted');
-        
-        // Start the interview automatically
-        await startInterview();
       } catch (error) {
-        console.error('Camera permission denied or error:', error);
         setCameraPermission('denied');
-        // Still start the interview without camera
-        await startInterview();
       }
     };
-
     initializeInterview();
   }, []);
 
-  // Set video stream when video ref is available
+  // Set video stream when video ref is available, then start interview
   useEffect(() => {
-    if (userVideoRef.current && userVideoStream) {
+    if (userVideoRef.current && userVideoStream && !sessionId) {
       userVideoRef.current.srcObject = userVideoStream;
+      startInterview();
     }
   }, [userVideoStream, userVideoRef.current]);
 
   const startInterview = async () => {
     setIsStarting(true);
-    
-    // Create initial prompt based on interview data
-    let initialPrompt = "Welcome to interview.ai. Let's begin your mock interview. ";
-    
-    if (interviewData) {
-      initialPrompt += `You are conducting a ${interviewData.interviewType} interview for a ${interviewData.seniority} ${interviewData.role} position`;
-      
-      if (interviewData.company) {
-        initialPrompt += ` at ${interviewData.company}`;
-      }
-      
-      if (interviewData.techStack.length > 0) {
-        initialPrompt += `. Focus areas include: ${interviewData.techStack.join(', ')}`;
-      }
-      
-      if (interviewData.difficulty) {
-        initialPrompt += `. Interview difficulty: ${interviewData.difficulty}`;
-      }
-      
-      initialPrompt += ". Ask relevant questions based on the candidate's role and experience level. Tell me about yourself.";
-    } else {
-      initialPrompt += "Tell me about yourself.";
-    }
-
-    speak(initialPrompt, () => {
-      setStarted(true);
+    try {
+      const formData = new FormData();
+      formData.append('interviewData', JSON.stringify(propInterviewData));
+      if (resumeFile) formData.append('resume', resumeFile);
+      const response = await axios.post("http://localhost:5000/api/interview/start", formData);
+      setSessionId(response.data.sessionId);
+      setRemaining(response.data.duration);
       setIsStarting(false);
-      startListening();
-    });
+      setStarted(true);
+      // Only speak after video is set and session is started
+      let initialPrompt = "Welcome to interview.ai. Let's begin your mock interview. ";
+      if (propInterviewData) {
+        initialPrompt += `You are conducting a ${propInterviewData.interviewType} interview for a ${propInterviewData.seniority} ${propInterviewData.role} position`;
+        if (propInterviewData.company) initialPrompt += ` at ${propInterviewData.company}`;
+        if (propInterviewData.techStack && propInterviewData.techStack.length > 0) initialPrompt += `. Focus areas include: ${propInterviewData.techStack.join(', ')}`;
+        if (propInterviewData.difficulty) initialPrompt += `. Interview difficulty: ${propInterviewData.difficulty}`;
+        initialPrompt += ". Ask relevant questions based on the candidate's role and experience level. Tell me about yourself.";
+      } else {
+        initialPrompt += "Tell me about yourself.";
+      }
+      speak(initialPrompt, () => {
+        startListening();
+      });
+    } catch (error) {
+      setIsStarting(false);
+    }
   };
 
   // Cleanup video stream on unmount
@@ -135,8 +110,16 @@ export default function InterviewLoop({ interviewData: propInterviewData, resume
       if (userVideoStream) {
         userVideoStream.getTracks().forEach(track => track.stop());
       }
+      if (timerInterval.current) clearInterval(timerInterval.current);
     };
   }, [userVideoStream]);
+
+  // Timer display helper
+  const formatTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="h-full">
@@ -159,12 +142,12 @@ export default function InterviewLoop({ interviewData: propInterviewData, resume
                   {cameraPermission === 'denied' && 'Camera access denied. Starting audio-only interview...'}
                 </>
               ) : (
-                interviewData ? (
+                propInterviewData ? (
                   <>
-                    You'll be interviewed for a <span className="font-semibold text-gray-900 dark:text-white">{interviewData.seniority} {interviewData.role}</span> position
-                    {interviewData.company && <span> at <span className="font-semibold text-gray-700 dark:text-gray-300">{interviewData.company}</span></span>}
-                    {interviewData.techStack.length > 0 && (
-                      <span> focusing on <span className="font-semibold text-gray-700 dark:text-gray-300">{interviewData.techStack.join(', ')}</span></span>
+                    You'll be interviewed for a <span className="font-semibold text-gray-900 dark:text-white">{propInterviewData.seniority} {propInterviewData.role}</span> position
+                    {propInterviewData.company && <span> at <span className="font-semibold text-gray-700 dark:text-gray-300">{propInterviewData.company}</span></span>}
+                    {propInterviewData.techStack && propInterviewData.techStack.length > 0 && (
+                      <span> focusing on <span className="font-semibold text-gray-700 dark:text-gray-300">{propInterviewData.techStack.join(', ')}</span></span>
                     )}
                   </>
                 ) : (
@@ -173,7 +156,6 @@ export default function InterviewLoop({ interviewData: propInterviewData, resume
               )}
             </p>
           </div>
-          
           {isStarting && (
             <div className="flex items-center justify-center gap-3 mb-8">
               <div className="w-8 h-8 border-4 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
@@ -184,39 +166,20 @@ export default function InterviewLoop({ interviewData: propInterviewData, resume
               </span>
             </div>
           )}
-          
-          {!isStarting && (
-            <button 
-              onClick={startInterview}
-              className="relative group px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 bg-black dark:bg-white text-white dark:text-black shadow-lg hover:shadow-xl"
-            >
-              <div className="flex items-center gap-3">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-                <span>Start Interview</span>
-                <div className="w-2 h-2 bg-white dark:bg-black rounded-full animate-pulse"></div>
-              </div>
-            </button>
-          )}
-          
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-              <span>Voice Recognition</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-              <span>AI Questions</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-              <span>Real-time Feedback</span>
-            </div>
-          </div>
+        </div>
+      ) : interviewComplete ? (
+        <div className="flex flex-col items-center justify-center h-full py-24">
+          <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-white">Interview Complete</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300">Thank you for participating in the mock interview!</p>
         </div>
       ) : (
         <div className="h-full flex flex-col">
+          {/* Timer */}
+          <div className="flex justify-center items-center py-4">
+            <span className="text-lg font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-xl shadow">
+              Time Remaining: {formatTime(remaining || 0)}
+            </span>
+          </div>
           {/* Video Call Style Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
             {/* AI Interviewer Window */}

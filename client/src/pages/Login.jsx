@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login: loginContext } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -26,30 +27,24 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, accept any email/password
-      if (formData.email && formData.password) {
-        login({
-          email: formData.email,
-          name: formData.email.split('@')[0] // Use email prefix as name
-        });
-        
+      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      if (response.data.success) {
+        // Set JWT token in cookie
+        document.cookie = `token=${response.data.token}; path=/; max-age=604800; secure; samesite=strict`;
+        loginContext(response.data.user); // update context with user info
         toast.success('🎉 Login successful! Welcome back!', {
           position: "top-right",
           autoClose: 2000,
         });
-        
         navigate('/');
       } else {
-        toast.error('Please fill in all fields', {
+        toast.error(response.data.error || 'Login failed', {
           position: "top-right",
           autoClose: 2000,
         });
       }
     } catch (error) {
-      toast.error('Login failed. Please try again.', {
+      toast.error(error.response?.data?.error || 'Login failed. Please try again.', {
         position: "top-right",
         autoClose: 2000,
       });

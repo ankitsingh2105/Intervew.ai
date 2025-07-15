@@ -10,6 +10,7 @@ import Interview from "./pages/Interview";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Footer from "./Components/Footer";
+import UserDashboard from "./pages/UserDashboard";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -50,6 +51,11 @@ const AppContent = () => {
           } />
           <Route path="/signup" element={
             isLoggedIn ? <Navigate to="/" replace /> : <Signup />
+          } />
+          <Route path="/user/dashboard" element={
+            <ProtectedRoute>
+              <UserDashboard />
+            </ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
